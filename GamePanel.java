@@ -1,14 +1,10 @@
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -28,6 +24,8 @@ public class GamePanel extends JPanel implements ActionListener {
     private int curX = 0;
     private int curY = 0;
     private Piece curPiece;
+    private Piece holdPiece;
+    private boolean holdUsed;
     private Board board;
 
     public GamePanel() {
@@ -42,7 +40,15 @@ public class GamePanel extends JPanel implements ActionListener {
         board = new Board(this);
         addKeyListener(new TAdapter());
 
+        // 尝试请求焦点
+        requestFocusInWindow();
+        requestFocus();
+        System.out.println("Focusable: " + isFocusable()); // Debugging
+        System.out.println("Requesting focus in window: " + requestFocusInWindow()); // Debugging
         curPiece = new Piece();
+        holdPiece = new Piece();
+        holdPiece.setShape(Shape.NoShape);
+        holdUsed = false;
         timer = new Timer(PERIOD_INTERVAL, this);
         timer.start();
     }
@@ -148,6 +154,7 @@ public class GamePanel extends JPanel implements ActionListener {
         curPiece.setRandomShape();
         curX = BOARD_WIDTH / 2;
         curY = BOARD_HEIGHT - 1 + curPiece.minY();
+        holdUsed = false;
 
         if (!tryMove(curPiece, curX, curY)) {
             curPiece.setShape(Shape.NoShape);
@@ -200,9 +207,30 @@ public class GamePanel extends JPanel implements ActionListener {
         g.drawLine(x + squareWidth() - 1, y + squareHeight() - 1, x + squareWidth() - 1, y + 1);
     }
 
+    private void hold() {
+        if (holdUsed) {
+            return;
+        }
+
+        Piece temp = new Piece();
+        temp.setShape(curPiece.getShape());
+        if (holdPiece.getShape() == Shape.NoShape) {
+            newPiece();
+        } else {
+            curPiece.setShape(holdPiece.getShape());
+            curX = BOARD_WIDTH / 2;
+            curY = BOARD_HEIGHT - 1 + curPiece.minY();
+        }
+        holdPiece.setShape(temp.getShape());
+        holdUsed = true;
+        repaint();
+    }
+
     class TAdapter extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
+            System.out.println("Key pressed: " + KeyEvent.getKeyText(e.getKeyCode())); // Debugging
+
             if (!isStarted || curPiece.getShape() == Shape.NoShape) {
                 return;
             }
@@ -219,29 +247,29 @@ public class GamePanel extends JPanel implements ActionListener {
             }
 
             switch (keycode) {
-                case KeyEvent.VK_LEFT:
+                case KeyEvent.VK_A:
                     tryMove(curPiece, curX - 1, curY);
                     break;
-                case KeyEvent.VK_RIGHT:
+                case KeyEvent.VK_D:
                     tryMove(curPiece, curX + 1, curY);
                     break;
-                case KeyEvent.VK_DOWN:
+                case KeyEvent.VK_W:
                     tryMove(curPiece.rotateRight(), curX, curY);
                     break;
-                case KeyEvent.VK_UP:
+                case KeyEvent.VK_S:
                     tryMove(curPiece.rotateLeft(), curX, curY);
                     break;
                 case KeyEvent.VK_SPACE:
                     dropDown();
                     break;
-                case 'd':
-                    oneLineDown();
+                case KeyEvent.VK_SHIFT:
+                case KeyEvent.VK_C:
+                    hold();
                     break;
-                case 'D':
-                    oneLineDown();
+                default:
+                    System.out.println("Key code: " + keycode); // Debugging
                     break;
             }
         }
     }
 }
-
