@@ -9,6 +9,8 @@ public class Tetris extends JFrame {
     }
 
     private void initUI() {
+        setFocusable(true);
+        setVisible(true);
         GamePanel gamePanel = new GamePanel();
         add(gamePanel);
 
@@ -31,7 +33,6 @@ public class Tetris extends JFrame {
                     public void run() {
                         game.getContentPane().getComponent(0).requestFocusInWindow();
                         game.getContentPane().getComponent(0).requestFocus();
-                        System.out.println("Requesting focus in window: " + game.getContentPane().getComponent(0).requestFocusInWindow()); // Debugging
                     }
                 });
             }

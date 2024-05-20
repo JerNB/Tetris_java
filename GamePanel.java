@@ -5,7 +5,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 public class GamePanel extends JPanel implements ActionListener {
@@ -15,7 +19,6 @@ public class GamePanel extends JPanel implements ActionListener {
     private final int BOARD_HEIGHT = 20;
     private final int INITIAL_DELAY = 400;
     private final int PERIOD_INTERVAL = 300;
-
     private Timer timer;
     private boolean isFallingFinished = false;
     private boolean isStarted = false;
@@ -34,17 +37,27 @@ public class GamePanel extends JPanel implements ActionListener {
 
     private void initBoard() {
         setFocusable(true);
+        setVisible(true);
         setBackground(Color.BLACK);
         setDoubleBuffered(true);
 
+        setFocusTraversalKeysEnabled(false);
+
         board = new Board(this);
-        addKeyListener(new TAdapter());
+        setupKeyBinding("pressed P", KeyEvent.VK_P, this::pause);
+        setupKeyBinding("pressed A", KeyEvent.VK_A, () -> tryMove(curPiece, curX - 1, curY));
+        setupKeyBinding("pressed D", KeyEvent.VK_D, () -> tryMove(curPiece, curX + 1, curY));
+        setupKeyBinding("pressed W", KeyEvent.VK_W, () -> tryMove(curPiece.rotateRight(), curX, curY));
+        setupKeyBinding("pressed S", KeyEvent.VK_S, () -> tryMove(curPiece.rotateLeft(), curX, curY));
+        setupKeyBinding("pressed SPACE", KeyEvent.VK_SPACE, this::dropDown);
+        setupKeyBinding("pressed SHIFT", KeyEvent.VK_SHIFT, this::hold);
+        setupKeyBinding("pressed C", KeyEvent.VK_C, this::hold);
 
         // 尝试请求焦点
-        requestFocusInWindow();
         requestFocus();
-        System.out.println("Focusable: " + isFocusable()); // Debugging
-        System.out.println("Requesting focus in window: " + requestFocusInWindow()); // Debugging
+        requestFocusInWindow();
+        requestFocus(true);
+        System.out.println("Focus obtained: " + isFocusOwner());
         curPiece = new Piece();
         holdPiece = new Piece();
         holdPiece.setShape(Shape.NoShape);
@@ -111,7 +124,8 @@ public class GamePanel extends JPanel implements ActionListener {
             for (int i = 0; i < 4; i++) {
                 int x = curX + curPiece.x(i);
                 int y = curY - curPiece.y(i);
-                drawSquare(g, 0 + x * squareWidth(), boardTop + (BOARD_HEIGHT - y - 1) * squareHeight(), curPiece.getShape());
+                drawSquare(g, 0 + x * squareWidth(), boardTop + (BOARD_HEIGHT - y - 1) * squareHeight(),
+                        curPiece.getShape());
             }
         }
     }
@@ -194,7 +208,8 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     private void drawSquare(Graphics g, int x, int y, Shape shape) {
-        Color colors[] = { Color.BLACK, Color.CYAN, Color.BLUE, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.PINK, Color.RED };
+        Color colors[] = { Color.BLACK, Color.CYAN, Color.BLUE, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.PINK,
+                Color.RED };
         Color color = colors[shape.ordinal()];
 
         g.setColor(color);
@@ -226,50 +241,16 @@ public class GamePanel extends JPanel implements ActionListener {
         repaint();
     }
 
-    class TAdapter extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            System.out.println("Key pressed: " + KeyEvent.getKeyText(e.getKeyCode())); // Debugging
+    private void setupKeyBinding(String name, int keyEvent, Runnable action) {
+        InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = getActionMap();
 
-            if (!isStarted || curPiece.getShape() == Shape.NoShape) {
-                return;
+        inputMap.put(KeyStroke.getKeyStroke(keyEvent, 0, false), name);
+        actionMap.put(name, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                action.run();
             }
-
-            int keycode = e.getKeyCode();
-
-            if (keycode == 'p' || keycode == 'P') {
-                pause();
-                return;
-            }
-
-            if (isPaused) {
-                return;
-            }
-
-            switch (keycode) {
-                case KeyEvent.VK_A:
-                    tryMove(curPiece, curX - 1, curY);
-                    break;
-                case KeyEvent.VK_D:
-                    tryMove(curPiece, curX + 1, curY);
-                    break;
-                case KeyEvent.VK_W:
-                    tryMove(curPiece.rotateRight(), curX, curY);
-                    break;
-                case KeyEvent.VK_S:
-                    tryMove(curPiece.rotateLeft(), curX, curY);
-                    break;
-                case KeyEvent.VK_SPACE:
-                    dropDown();
-                    break;
-                case KeyEvent.VK_SHIFT:
-                case KeyEvent.VK_C:
-                    hold();
-                    break;
-                default:
-                    System.out.println("Key code: " + keycode); // Debugging
-                    break;
-            }
-        }
+        });
     }
 }
