@@ -24,6 +24,10 @@ public class Board {
         }
 
         removeFullLines();
+
+        if (gamePanel.getPieceList().isEmpty()) {
+            gamePanel.newPiece();
+        }
     }
 
     public Shape shapeAt(int x, int y) {

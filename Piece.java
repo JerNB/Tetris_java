@@ -1,9 +1,13 @@
-import java.util.Random;
+import java.util.List;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class Piece {
     private Shape pieceShape;
     private int[][] coords;
     private int[][][] coordsTable;
+    private List<Shape> shapeList = new ArrayList<>();
 
     public Piece() {
         coords = new int[4][2];
@@ -17,9 +21,9 @@ public class Piece {
                 { { 0, -1 }, { 0, 0 }, { 1, 0 }, { 1, 1 } }, // SShape
                 { { 0, -1 }, { 0, 0 }, { 0, 1 }, { 0, 2 } }, // LineShape
                 { { -1, 0 }, { 0, 0 }, { 1, 0 }, { 0, 1 } }, // TShape
-                { { -1, -1 }, { 0, -1 }, { 0, 0 }, { 1, 0 } }, // SquareShape
+                { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } }, // SquareShape
                 { { -1, 0 }, { 0, 0 }, { 1, 0 }, { 1, -1 } }, // LShape
-                { { -1, -1 }, { -1, 0 }, { 0, 0 }, { 1, 0 } } // MirroredLShape
+                { { -1, -1 }, { -1, 0 }, { 0, 0 }, { 1, 0 } }, // MirroredLShape
         };
 
         for (int i = 0; i < 4; i++) {
@@ -52,10 +56,12 @@ public class Piece {
     }
 
     public void setRandomShape() {
-        Random r = new Random();
-        int x = Math.abs(r.nextInt()) % 7 + 1;
-        Shape[] values = Shape.values();
-        setShape(values[x]);
+        if (shapeList.isEmpty()) {
+            Collections.addAll(shapeList, Shape.values());
+            Collections.shuffle(shapeList, new SecureRandom()); // Use SecureRandom
+        }
+        Shape shape = shapeList.remove(shapeList.size() - 1);
+        setShape(shape);
     }
 
     public int minX() {

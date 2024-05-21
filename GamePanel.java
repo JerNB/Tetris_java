@@ -3,8 +3,9 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -30,9 +31,15 @@ public class GamePanel extends JPanel implements ActionListener {
     private Piece holdPiece;
     private boolean holdUsed;
     private Board board;
+    private List<Piece> pieceList;
 
     public GamePanel() {
+        pieceList = new ArrayList<>();
         initBoard();
+    }
+
+    public List<Piece> getPieceList() {
+        return pieceList;
     }
 
     private void initBoard() {
@@ -45,13 +52,15 @@ public class GamePanel extends JPanel implements ActionListener {
 
         board = new Board(this);
         setupKeyBinding("pressed P", KeyEvent.VK_P, this::pause);
-        setupKeyBinding("pressed A", KeyEvent.VK_A, () -> tryMove(curPiece, curX - 1, curY));
-        setupKeyBinding("pressed D", KeyEvent.VK_D, () -> tryMove(curPiece, curX + 1, curY));
-        setupKeyBinding("pressed W", KeyEvent.VK_W, () -> tryMove(curPiece.rotateRight(), curX, curY));
-        setupKeyBinding("pressed S", KeyEvent.VK_S, () -> tryMove(curPiece.rotateLeft(), curX, curY));
-        setupKeyBinding("pressed SPACE", KeyEvent.VK_SPACE, this::dropDown);
-        setupKeyBinding("pressed SHIFT", KeyEvent.VK_SHIFT, this::hold);
-        setupKeyBinding("pressed C", KeyEvent.VK_C, this::hold);
+        setupKeyBinding("pressed LEFT", KeyEvent.VK_LEFT, () -> tryMove(curPiece, curX - 1, curY)); // A -> LEFT
+        setupKeyBinding("pressed RIGHT", KeyEvent.VK_RIGHT, () -> tryMove(curPiece, curX + 1, curY)); // D -> RIGHT
+        setupKeyBinding("pressed UP", KeyEvent.VK_UP, () -> tryMove(curPiece.rotateRight(), curX, curY)); // W -> UP
+        setupKeyBinding("pressed DOWN", KeyEvent.VK_DOWN, () -> tryMove(curPiece.rotateLeft(), curX, curY)); // S ->
+                                                                                                             // DOWN
+        setupKeyBinding("pressed SPACE", KeyEvent.VK_SPACE, this::dropDown); // SPACE -> confirm
+        // setupKeyBinding("pressed SHIFT", KeyEvent.VK_SHIFT, this::speedDown); //
+        // SHIFT -> dropDown
+        // setupKeyBinding("pressed Z", KeyEvent.VK_Z, this::tSpin); // Z -> tSpin
 
         // 尝试请求焦点
         requestFocus();
@@ -110,6 +119,13 @@ public class GamePanel extends JPanel implements ActionListener {
         Dimension size = getSize();
         int boardTop = (int) size.getHeight() - BOARD_HEIGHT * squareHeight();
 
+        for (int i = 0; i <= BOARD_WIDTH; i++) {
+            g.drawLine(i * squareWidth(), 0, i * squareWidth(), BOARD_HEIGHT * squareHeight());
+        }
+        for (int i = 0; i <= BOARD_HEIGHT; i++) {
+            g.drawLine(0, i * squareHeight(), BOARD_WIDTH * squareWidth(), i * squareHeight());
+        }
+
         for (int i = 0; i < BOARD_HEIGHT; i++) {
             for (int j = 0; j < BOARD_WIDTH; j++) {
                 Shape shape = board.shapeAt(j, BOARD_HEIGHT - i - 1);
@@ -164,7 +180,7 @@ public class GamePanel extends JPanel implements ActionListener {
         }
     }
 
-    private void newPiece() {
+    public void newPiece() {
         curPiece.setRandomShape();
         curX = BOARD_WIDTH / 2;
         curY = BOARD_HEIGHT - 1 + curPiece.minY();
