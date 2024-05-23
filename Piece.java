@@ -57,10 +57,15 @@ public class Piece {
 
     public void setRandomShape() {
         if (shapeList.isEmpty()) {
-            Collections.addAll(shapeList, Shape.values());
+            for (Shape shape : Shape.values()) {
+                if (shape != Shape.NoShape) {
+                    shapeList.add(shape);
+                }
+            }
             Collections.shuffle(shapeList, new SecureRandom()); // Use SecureRandom
         }
         Shape shape = shapeList.remove(shapeList.size() - 1);
+        System.out.println("Shape: " + shape);
         setShape(shape);
     }
 

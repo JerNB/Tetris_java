@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Board {
     private Shape[][] board;
     private GamePanel gamePanel;
@@ -24,10 +27,30 @@ public class Board {
         }
 
         removeFullLines();
+    }
 
-        if (gamePanel.getPieceList().isEmpty()) {
-            gamePanel.newPiece();
+    public void addScore(int linesRemoved) {
+        int baseScore;
+        switch (linesRemoved) {
+            case 1:
+                baseScore = 100;
+                break;
+            case 2:
+                baseScore = 300;
+                break;
+            case 3:
+                baseScore = 500;
+                break;
+            case 4:
+                baseScore = 800;
+                break;
+            default:
+                return;
         }
+
+        int bonus = 0;
+        // Add bonus for T-Spin, etc.
+        // ...
     }
 
     public Shape shapeAt(int x, int y) {
@@ -35,9 +58,9 @@ public class Board {
     }
 
     private void removeFullLines() {
-        int numFullLines = 0;
+        List<Integer> fullLines = new ArrayList<>();
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 19; i >= 0; i--) {
             boolean lineIsFull = true;
 
             for (int j = 0; j < 10; j++) {
@@ -48,21 +71,25 @@ public class Board {
             }
 
             if (lineIsFull) {
-                numFullLines++;
-                for (int k = i; k < 19; k++) {
-                    for (int j = 0; j < 10; j++) {
-                        board[j][k] = board[j][k + 1];
-                    }
-                }
-
-                for (int j = 0; j < 10; j++) {
-                    board[j][19] = Shape.NoShape;
-                }
+                fullLines.add(i);
             }
         }
 
-        if (numFullLines > 0) {
+        for (int i : fullLines) {
+            for (int k = i; k < 19; k++) {
+                for (int j = 0; j < 10; j++) {
+                    board[j][k] = board[j][k + 1];
+                }
+            }
+
+            for (int j = 0; j < 10; j++) {
+                board[j][19] = Shape.NoShape;
+            }
+        }
+
+        if (!fullLines.isEmpty()) {
             gamePanel.repaint();
+            addScore(fullLines.size()); // Add score based on the number of lines removed
         }
     }
 }

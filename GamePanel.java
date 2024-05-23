@@ -19,7 +19,7 @@ public class GamePanel extends JPanel implements ActionListener {
     private final int BOARD_WIDTH = 10;
     private final int BOARD_HEIGHT = 20;
     private final int INITIAL_DELAY = 400;
-    private final int PERIOD_INTERVAL = 300;
+    private final int PERIOD_INTERVAL = 600;
     private Timer timer;
     private boolean isFallingFinished = false;
     private boolean isStarted = false;
@@ -32,6 +32,9 @@ public class GamePanel extends JPanel implements ActionListener {
     private boolean holdUsed;
     private Board board;
     private List<Piece> pieceList;
+    private Piece preservedPiece;
+    private Timer moveTimer;
+    private int score = 0;
 
     public GamePanel() {
         pieceList = new ArrayList<>();
@@ -52,11 +55,11 @@ public class GamePanel extends JPanel implements ActionListener {
 
         board = new Board(this);
         setupKeyBinding("pressed P", KeyEvent.VK_P, this::pause);
-        setupKeyBinding("pressed LEFT", KeyEvent.VK_LEFT, () -> tryMove(curPiece, curX - 1, curY)); // A -> LEFT
-        setupKeyBinding("pressed RIGHT", KeyEvent.VK_RIGHT, () -> tryMove(curPiece, curX + 1, curY)); // D -> RIGHT
-        setupKeyBinding("pressed UP", KeyEvent.VK_UP, () -> tryMove(curPiece.rotateRight(), curX, curY)); // W -> UP
-        setupKeyBinding("pressed DOWN", KeyEvent.VK_DOWN, () -> tryMove(curPiece.rotateLeft(), curX, curY)); // S ->
-                                                                                                             // DOWN
+        setupKeySpeedBinding("pressed LEFT", KeyEvent.VK_LEFT, () -> tryMove(curPiece, curX - 1, curY));
+        setupKeySpeedBinding("pressed RIGHT", KeyEvent.VK_RIGHT, () -> tryMove(curPiece, curX + 1, curY));
+        setupKeySpeedBinding("pressed DOWN", KeyEvent.VK_DOWN, () -> tryMove(curPiece, curX, curY - 1));
+        setupKeyBinding("pressed UP", KeyEvent.VK_UP, () -> tryMove(curPiece.rotateRight(), curX, curY));
+        setupKeyBinding("Shift", KeyEvent.VK_SHIFT, () -> preserve()); // DOWN
         setupKeyBinding("pressed SPACE", KeyEvent.VK_SPACE, this::dropDown); // SPACE -> confirm
         // setupKeyBinding("pressed SHIFT", KeyEvent.VK_SHIFT, this::speedDown); //
         // SHIFT -> dropDown
@@ -66,6 +69,8 @@ public class GamePanel extends JPanel implements ActionListener {
         requestFocus();
         requestFocusInWindow();
         requestFocus(true);
+        preservedPiece = new Piece();
+        preservedPiece.setShape(Shape.NoShape);
         System.out.println("Focus obtained: " + isFocusOwner());
         curPiece = new Piece();
         holdPiece = new Piece();
@@ -85,19 +90,19 @@ public class GamePanel extends JPanel implements ActionListener {
         }
     }
 
-    private void start() {
-        if (isPaused) {
-            return;
-        }
+    // private void start() {
+    // if (isPaused) {
+    // return;
+    // }
 
-        isStarted = true;
-        isFallingFinished = false;
-        numLinesRemoved = 0;
-        board.clear();
+    // isStarted = true;
+    // isFallingFinished = false;
+    // numLinesRemoved = 0;
+    // board.clear();
 
-        newPiece();
-        timer.start();
-    }
+    // newPiece();
+    // timer.start();
+    // }
 
     private void pause() {
         if (!isStarted) {
@@ -113,6 +118,17 @@ public class GamePanel extends JPanel implements ActionListener {
         }
 
         repaint();
+    }
+
+    private void preserve() {
+        if (preservedPiece.getShape() != Shape.NoShape) {
+            Piece temp = curPiece;
+            curPiece = preservedPiece;
+            preservedPiece = temp;
+        } else {
+            preservedPiece = curPiece;
+            curPiece = new Piece();
+        }
     }
 
     private void doDrawing(Graphics g) {
@@ -146,10 +162,17 @@ public class GamePanel extends JPanel implements ActionListener {
         }
     }
 
+    public void displayScore(Graphics g) {
+        g.setColor(Color.WHITE);
+        g.drawString("Score: " + score, 5, 15);
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         doDrawing(g);
+        displayScore(g);
+        // drawGhostPiece(g);
     }
 
     private void dropDown() {
@@ -177,6 +200,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
         if (!isFallingFinished) {
             newPiece();
+            System.out.println("Piece Dropped");
         }
     }
 
@@ -224,8 +248,9 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     private void drawSquare(Graphics g, int x, int y, Shape shape) {
-        Color colors[] = { Color.BLACK, Color.CYAN, Color.BLUE, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.PINK,
-                Color.RED };
+        Color purple = new Color(128, 0, 128);
+        Color colors[] = { Color.BLACK, Color.RED, Color.GREEN, Color.CYAN, Color.PINK, Color.YELLOW, Color.ORANGE,
+                purple };
         Color color = colors[shape.ordinal()];
 
         g.setColor(color);
@@ -238,24 +263,45 @@ public class GamePanel extends JPanel implements ActionListener {
         g.drawLine(x + squareWidth() - 1, y + squareHeight() - 1, x + squareWidth() - 1, y + 1);
     }
 
-    private void hold() {
-        if (holdUsed) {
-            return;
-        }
+    // private void hold() {
+    // if (holdUsed) {
+    // return;
+    // }
 
-        Piece temp = new Piece();
-        temp.setShape(curPiece.getShape());
-        if (holdPiece.getShape() == Shape.NoShape) {
-            newPiece();
-        } else {
-            curPiece.setShape(holdPiece.getShape());
-            curX = BOARD_WIDTH / 2;
-            curY = BOARD_HEIGHT - 1 + curPiece.minY();
-        }
-        holdPiece.setShape(temp.getShape());
-        holdUsed = true;
-        repaint();
-    }
+    // Piece temp = new Piece();
+    // temp.setShape(curPiece.getShape());
+    // if (holdPiece.getShape() == Shape.NoShape) {
+    // newPiece();
+    // } else {
+    // curPiece.setShape(holdPiece.getShape());
+    // curX = BOARD_WIDTH / 2;
+    // curY = BOARD_HEIGHT - 1 + curPiece.minY();
+    // }
+    // holdPiece.setShape(temp.getShape());
+    // holdUsed = true;
+    // repaint();
+    // }
+
+    // public void drawGhostPiece(Graphics g) {
+    // if (curPiece.getShape() != Shape.NoShape) {
+    // g.setColor(new Color(255, 255, 255, 128)); // 设置颜色为半透明的白色
+
+    // Piece ghostPiece = curPiece; // 创建curPiece的副本
+    // int y = curY;
+    // while (y > 0) {
+    // if (!tryMove(ghostPiece, curX, y - 1)) // 使用副本ghostPiece
+    // break;
+    // --y;
+    // }
+
+    // for (int i = 0; i < 4; ++i) {
+    // int x = curX + ghostPiece.x(i); // 使用副本ghostPiece
+    // int ghostY = y + ghostPiece.y(i); // 使用副本ghostPiece
+    // drawSquare(g, x * squareWidth(), (BOARD_HEIGHT - ghostY - 1) *
+    // squareHeight(), ghostPiece.getShape()); // 使用副本ghostPiece
+    // }
+    // }
+    // }
 
     private void setupKeyBinding(String name, int keyEvent, Runnable action) {
         InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
@@ -266,6 +312,35 @@ public class GamePanel extends JPanel implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 action.run();
+            }
+        });
+    }
+
+    private void setupKeySpeedBinding(String name, int keyEvent, Runnable action) {
+        InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke(keyEvent, 0, false), name + "Pressed");
+        actionMap.put(name + "Pressed", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                action.run();
+                if (moveTimer != null) {
+                    moveTimer.stop();
+                }
+                moveTimer = new Timer(100, evt -> action.run());
+                moveTimer.start();
+            }
+        });
+
+        inputMap.put(KeyStroke.getKeyStroke(keyEvent, 0, true), name + "Released");
+        actionMap.put(name + "Released", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (moveTimer != null) {
+                    moveTimer.stop();
+                    moveTimer = null;
+                }
             }
         });
     }
