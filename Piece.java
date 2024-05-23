@@ -56,16 +56,21 @@ public class Piece {
     }
 
     public void setRandomShape() {
-        if (shapeList.isEmpty()) {
+        if (shapeList.size() < 6) {
+            List<Shape> newShapes = new ArrayList<>();
             for (Shape shape : Shape.values()) {
                 if (shape != Shape.NoShape) {
-                    shapeList.add(shape);
+                    newShapes.add(shape);
                 }
             }
-            Collections.shuffle(shapeList, new SecureRandom()); // Use SecureRandom
+            do {
+                Collections.shuffle(newShapes, new SecureRandom()); // Use SecureRandom
+            } while (shapeList.size() > 0 && shapeList.get(shapeList.size() - 1) == newShapes.get(0));
+            shapeList.addAll(newShapes);
         }
-        Shape shape = shapeList.remove(shapeList.size() - 1);
-        System.out.println("Shape: " + shape);
+        Shape shape = shapeList.remove(0); // Remove from the front
+        shapeList.forEach(System.out::print);
+        System.out.println("");
         setShape(shape);
     }
 

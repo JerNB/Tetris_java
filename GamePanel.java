@@ -71,7 +71,6 @@ public class GamePanel extends JPanel implements ActionListener {
         requestFocus(true);
         preservedPiece = new Piece();
         preservedPiece.setShape(Shape.NoShape);
-        System.out.println("Focus obtained: " + isFocusOwner());
         curPiece = new Piece();
         holdPiece = new Piece();
         holdPiece.setShape(Shape.NoShape);
@@ -200,7 +199,6 @@ public class GamePanel extends JPanel implements ActionListener {
 
         if (!isFallingFinished) {
             newPiece();
-            System.out.println("Piece Dropped");
         }
     }
 
