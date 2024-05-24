@@ -13,7 +13,6 @@ public class Tetris extends JFrame {
         setVisible(true);
         GamePanel gamePanel = new GamePanel();
         add(gamePanel);
-
         setTitle("Tetris");
         setSize(400, 800);
         setDefaultCloseOperation(EXIT_ON_CLOSE);

@@ -3,6 +3,7 @@ import java.util.List;
 
 public class Board {
     private Shape[][] board;
+    private int score = 0;
     private GamePanel gamePanel;
 
     public Board(GamePanel gamePanel) {
@@ -30,19 +31,18 @@ public class Board {
     }
 
     public void addScore(int linesRemoved) {
-        int baseScore;
         switch (linesRemoved) {
             case 1:
-                baseScore = 100;
+                score += 100;
                 break;
             case 2:
-                baseScore = 300;
+                score += 300;
                 break;
             case 3:
-                baseScore = 500;
+                score += 500;
                 break;
             case 4:
-                baseScore = 800;
+                score += 800;
                 break;
             default:
                 return;
@@ -51,6 +51,12 @@ public class Board {
         int bonus = 0;
         // Add bonus for T-Spin, etc.
         // ...
+    }
+    public int getScore(){
+        return score;
+    }
+    public void updateScore(int points){
+        score+=points;
     }
 
     public Shape shapeAt(int x, int y) {

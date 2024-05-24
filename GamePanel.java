@@ -34,7 +34,6 @@ public class GamePanel extends JPanel implements ActionListener {
     private List<Piece> pieceList;
     private Piece preservedPiece;
     private Timer moveTimer;
-    private int score = 0;
 
     public GamePanel() {
         pieceList = new ArrayList<>();
@@ -163,7 +162,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void displayScore(Graphics g) {
         g.setColor(Color.WHITE);
-        g.drawString("Score: " + score, 5, 15);
+        g.drawString("Score: " + board.getScore() , 5, 15);
     }
 
     @Override
@@ -196,7 +195,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     private void pieceDropped() {
         board.addPiece(curPiece, curX, curY);
-
+        board.updateScore(10);
         if (!isFallingFinished) {
             newPiece();
         }
