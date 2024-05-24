@@ -33,16 +33,16 @@ public class Board {
     public void addScore(int linesRemoved) {
         switch (linesRemoved) {
             case 1:
-                score += 100;
+                score += 1000;
                 break;
             case 2:
-                score += 300;
+                score += 3000;
                 break;
             case 3:
-                score += 500;
+                score += 5000;
                 break;
             case 4:
-                score += 800;
+                score += 8000;
                 break;
             default:
                 return;

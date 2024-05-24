@@ -56,7 +56,7 @@ public class GamePanel extends JPanel implements ActionListener {
         setupKeyBinding("pressed P", KeyEvent.VK_P, this::pause);
         setupKeySpeedBinding("pressed LEFT", KeyEvent.VK_LEFT, () -> tryMove(curPiece, curX - 1, curY));
         setupKeySpeedBinding("pressed RIGHT", KeyEvent.VK_RIGHT, () -> tryMove(curPiece, curX + 1, curY));
-        setupKeySpeedBinding("pressed DOWN", KeyEvent.VK_DOWN, () -> tryMove(curPiece, curX, curY - 1));
+        setupKeySpeedBinding("pressed DOWN", KeyEvent.VK_DOWN, () -> tryMoveWithUpdate(curPiece, curX, curY - 1));
         setupKeyBinding("pressed UP", KeyEvent.VK_UP, () -> tryMove(curPiece.rotateRight(), curX, curY));
         setupKeyBinding("Shift", KeyEvent.VK_SHIFT, () -> preserve()); // DOWN
         setupKeyBinding("pressed SPACE", KeyEvent.VK_SPACE, this::dropDown); // SPACE -> confirm
@@ -101,6 +101,7 @@ public class GamePanel extends JPanel implements ActionListener {
     // newPiece();
     // timer.start();
     // }
+
 
     private void pause() {
         if (!isStarted) {
@@ -175,7 +176,6 @@ public class GamePanel extends JPanel implements ActionListener {
 
     private void dropDown() {
         int newY = curY;
-
         while (newY > 0) {
             if (!tryMove(curPiece, curX, newY - 1)) {
                 break;
@@ -183,7 +183,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
             newY--;
         }
-
+        board.updateScore(70);
         pieceDropped();
     }
 
@@ -212,6 +212,10 @@ public class GamePanel extends JPanel implements ActionListener {
             timer.stop();
             isStarted = false;
         }
+    }
+    private boolean tryMoveWithUpdate(Piece newPiece, int newX, int newY){
+        board.updateScore(5);
+        return tryMove(newPiece,newX,newY);
     }
 
     private boolean tryMove(Piece newPiece, int newX, int newY) {
