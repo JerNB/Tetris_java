@@ -68,9 +68,7 @@ public class Piece {
             } while (shapeList.size() > 0 && shapeList.get(shapeList.size() - 1) == newShapes.get(0));
             shapeList.addAll(newShapes);
         }
-        Shape shape = shapeList.remove(0); // Remove from the front
-        shapeList.forEach(System.out::print);
-        System.out.println("");
+        Shape shape = shapeList.remove(0);
         setShape(shape);
     }
 
@@ -94,22 +92,6 @@ public class Piece {
         return m;
     }
 
-    public Piece rotateLeft() {
-        if (pieceShape == Shape.SquareShape) {
-            return this;
-        }
-
-        Piece result = new Piece();
-        result.pieceShape = pieceShape;
-
-        for (int i = 0; i < 4; i++) {
-            result.setX(i, y(i));
-            result.setY(i, -x(i));
-        }
-
-        return result;
-    }
-
     public Piece rotateRight() {
         if (pieceShape == Shape.SquareShape) {
             return this;
@@ -117,6 +99,8 @@ public class Piece {
 
         Piece result = new Piece();
         result.pieceShape = pieceShape;
+        result.coordsTable = this.coordsTable; // copy coordsTable
+        result.shapeList = new ArrayList<>(this.shapeList); // copy shapeList
 
         for (int i = 0; i < 4; i++) {
             result.setX(i, -y(i));
