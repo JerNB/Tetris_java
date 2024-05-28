@@ -62,7 +62,7 @@ public class GamePanel extends JPanel implements ActionListener {
         setupKeyBinding("pressed SPACE", KeyEvent.VK_SPACE, this::dropDown); // SPACE -> confirm
         // setupKeyBinding("pressed SHIFT", KeyEvent.VK_SHIFT, this::speedDown); //
         // SHIFT -> dropDown
-        // setupKeyBinding("pressed Z", KeyEvent.VK_Z, this::tSpin); // Z -> tSpin
+        setupKeyBinding("pressed Z", KeyEvent.VK_Z, () -> tryMove(curPiece.rotateLeft(), curX, curY)); // Z -> tSpin
 
         // 尝试请求焦点
         requestFocus();
@@ -101,7 +101,6 @@ public class GamePanel extends JPanel implements ActionListener {
     // newPiece();
     // timer.start();
     // }
-
 
     private void pause() {
         if (!isStarted) {
@@ -163,13 +162,14 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void displayScore(Graphics g) {
         g.setColor(Color.WHITE);
-        g.drawString("Score: " + board.getScore() , 5, 15);
+        g.drawString("Score: " + board.getScore(), 5, 15);
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         doDrawing(g);
+        drawGhostPiece(g);
         displayScore(g);
         // drawGhostPiece(g);
     }
@@ -213,9 +213,10 @@ public class GamePanel extends JPanel implements ActionListener {
             isStarted = false;
         }
     }
-    private boolean tryMoveWithUpdate(Piece newPiece, int newX, int newY){
+
+    private boolean tryMoveWithUpdate(Piece newPiece, int newX, int newY) {
         board.updateScore(5);
-        return tryMove(newPiece,newX,newY);
+        return tryMove(newPiece, newX, newY);
     }
 
     private boolean tryMove(Piece newPiece, int newX, int newY) {
@@ -240,6 +241,23 @@ public class GamePanel extends JPanel implements ActionListener {
         return true;
     }
 
+    private boolean checkMove(Piece newPiece, int newX, int newY) {
+        for (int i = 0; i < 4; i++) {
+            int x = newX + newPiece.x(i);
+            int y = newY - newPiece.y(i);
+
+            if (x < 0 || x >= BOARD_WIDTH || y < 0 || y >= BOARD_HEIGHT) {
+                return false;
+            }
+
+            if (board.shapeAt(x, y) != Shape.NoShape) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private int squareWidth() {
         return (int) getSize().getWidth() / BOARD_WIDTH;
     }
@@ -249,10 +267,16 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     private void drawSquare(Graphics g, int x, int y, Shape shape) {
+        // 使用默认颜色
+        Color defaultColor = Color.BLACK;
+        drawSquare(g, x, y, shape, defaultColor);
+    }
+
+    private void drawSquare(Graphics g, int x, int y, Shape shape, Color diyColor) {
         Color purple = new Color(128, 0, 128);
         Color colors[] = { Color.BLACK, Color.RED, Color.GREEN, Color.CYAN, Color.PINK, Color.YELLOW, Color.ORANGE,
                 purple };
-        Color color = colors[shape.ordinal()];
+        Color color = (diyColor != Color.BLACK) ? diyColor : colors[shape.ordinal()];
 
         g.setColor(color);
         g.fillRect(x, y, squareWidth(), squareHeight());
@@ -303,6 +327,26 @@ public class GamePanel extends JPanel implements ActionListener {
     // }
     // }
     // }
+    private void drawGhostPiece(Graphics g) {
+        Dimension size = getSize();
+        int boardTop = (int) size.getHeight() - BOARD_HEIGHT * squareHeight();
+        int boardBottom = boardTop + BOARD_HEIGHT * squareHeight();
+        g.setColor(new Color(255, 255, 255));
+
+        if (curPiece.getShape() != Shape.NoShape) {
+            int ghostY = curY;
+            while (ghostY > 1 && checkMove(curPiece, curX, ghostY)) {
+                ghostY--;
+            }
+
+            for (int i = 0; i < 4; i++) {
+                int x = curX + curPiece.x(i);
+                int y = ghostY - curPiece.y(i);
+                drawSquare(g, 0 + x * squareWidth(), boardTop + (BOARD_HEIGHT - y - 1) * squareHeight(),
+                        curPiece.getShape(), new Color(255, 255, 255, 128));
+            }
+        }
+    }
 
     private void setupKeyBinding(String name, int keyEvent, Runnable action) {
         InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);

@@ -109,4 +109,22 @@ public class Piece {
 
         return result;
     }
+
+    public Piece rotateLeft() {
+        if (pieceShape == Shape.SquareShape) {
+            return this;
+        }
+
+        Piece result = new Piece();
+        result.pieceShape = pieceShape;
+        result.coordsTable = this.coordsTable; // copy coordsTable
+        result.shapeList = new ArrayList<>(this.shapeList); // copy shapeList
+
+        for (int i = 0; i < 4; i++) {
+            result.setX(i, y(i));
+            result.setY(i, -x(i));
+        }
+
+        return result;
+    }
 }

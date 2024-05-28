@@ -52,11 +52,13 @@ public class Board {
         // Add bonus for T-Spin, etc.
         // ...
     }
-    public int getScore(){
+
+    public int getScore() {
         return score;
     }
-    public void updateScore(int points){
-        score+=points;
+
+    public void updateScore(int points) {
+        score += points;
     }
 
     public Shape shapeAt(int x, int y) {
