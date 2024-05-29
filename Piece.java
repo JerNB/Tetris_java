@@ -1,8 +1,15 @@
 import java.util.List;
+
+import javafx.scene.paint.Color;
+
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import java.awt.Graphics;
+import java.util.List;
+
+import javax.swing.JPanel;
 public class Piece {
     private Shape pieceShape;
     private int[][] coords;
@@ -17,8 +24,8 @@ public class Piece {
     public void setShape(Shape shape) {
         coordsTable = new int[][][] {
                 { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } }, // NoShape
-                { { 0, -1 }, { 0, 0 }, { -1, 0 }, { -1, 1 } }, // ZShape
-                { { 0, -1 }, { 0, 0 }, { 1, 0 }, { 1, 1 } }, // SShape
+                { { -1, -1 }, { 0, -1 }, { 0, 0 }, { 1, 0 } }, // ZShape
+                { { 1, -1 }, { 0, -1 }, { 0, 0 }, { -1, 0 } }, // SShape
                 { { 0, -1 }, { 0, 0 }, { 0, 1 }, { 0, 2 } }, // LineShape
                 { { -1, 0 }, { 0, 0 }, { 1, 0 }, { 0, 1 } }, // TShape
                 { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } }, // SquareShape
@@ -34,6 +41,7 @@ public class Piece {
 
         pieceShape = shape;
     }
+    
 
     private void setX(int index, int x) {
         coords[index][0] = x;
