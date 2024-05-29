@@ -1,18 +1,21 @@
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.Timer;
-
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 public class GamePanel extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
@@ -175,17 +178,20 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     private void dropDown() {
-        int newY = curY;
-        while (newY > 0) {
-            if (!tryMove(curPiece, curX, newY - 1)) {
-                break;
-            }
-
-            newY--;
+    int newY = curY;
+    while (newY > 0) {
+        if (!tryMove(curPiece, curX, newY - 1)) {
+            break;
         }
-        board.updateScore(70);
-        pieceDropped();
+
+        newY--;
     }
+
+    board.updateScore(70);
+    pieceDropped();
+}
+
+
 
     private void oneLineDown() {
         if (!tryMove(curPiece, curX, curY - 1)) {
@@ -273,21 +279,53 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     private void drawSquare(Graphics g, int x, int y, Shape shape, Color diyColor) {
-        Color purple = new Color(128, 0, 128);
-        Color colors[] = { Color.BLACK, Color.RED, Color.GREEN, Color.CYAN, Color.PINK, Color.YELLOW, Color.ORANGE,
-                purple };
+        Color purple = new Color(92, 68, 212);
+        Color cyan = new Color(3, 252, 198);
+        Color red = new Color(252, 88, 88);
+        Color yellow = new Color(250, 235, 25);
+        Color green = new Color(177, 237, 81);
+        Color orange = new Color(247, 167, 87);
+        Color pink = new Color(243, 115, 250);
+        Color colors[] = { Color.BLACK, red, green, cyan, pink, yellow, orange, purple };
         Color color = (diyColor != Color.BLACK) ? diyColor : colors[shape.ordinal()];
 
+        // 绘制方块主体
         g.setColor(color);
         g.fillRect(x, y, squareWidth(), squareHeight());
-        g.setColor(color.brighter());
+
+        // 绘制方块边框
+        g.setColor(color.darker().darker());
+        g.drawRect(x, y, squareWidth(), squareHeight());
+
+        // 绘制 3D 效果
+        g.setColor(color.brighter().brighter());
         g.drawLine(x, y + squareHeight() - 1, x, y);
         g.drawLine(x, y, x + squareWidth() - 1, y);
-        g.setColor(color.darker());
+        g.setColor(color.darker().darker());
         g.drawLine(x + 1, y + squareHeight() - 1, x + squareWidth() - 1, y + squareHeight() - 1);
         g.drawLine(x + squareWidth() - 1, y + squareHeight() - 1, x + squareWidth() - 1, y + 1);
-    }
 
+        // 绘制内部方块
+        if (color.getAlpha() == 255) {
+            int centerX = x + squareWidth() / 2;
+            int centerY = y + squareHeight() / 2;
+            int innerSquareSize = Math.min(squareWidth(), squareHeight()) / 3;
+
+            g.setColor(color.darker().darker());
+            g.drawLine(centerX - innerSquareSize / 2, centerY - innerSquareSize / 2, centerX + innerSquareSize / 2,
+                    centerY - innerSquareSize / 2);
+            g.drawLine(centerX - innerSquareSize / 2, centerY - innerSquareSize / 2, centerX - innerSquareSize / 2,
+                    centerY + innerSquareSize / 2);
+            g.setColor(color.brighter().brighter());
+            g.drawLine(centerX + innerSquareSize / 2, centerY - innerSquareSize / 2, centerX + innerSquareSize / 2,
+                    centerY + innerSquareSize / 2);
+            g.drawLine(centerX - innerSquareSize / 2, centerY + innerSquareSize / 2, centerX + innerSquareSize / 2,
+                    centerY + innerSquareSize / 2);
+
+            g.setColor(color);
+            g.fillRect(centerX - innerSquareSize / 2, centerY - innerSquareSize / 2, innerSquareSize, innerSquareSize);
+        }
+    }
     // private void hold() {
     // if (holdUsed) {
     // return;
