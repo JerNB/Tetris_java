@@ -83,6 +83,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        if (isPaused) {
+            return;
+        }
         if (isFallingFinished) {
             isFallingFinished = false;
             newPiece();
@@ -161,6 +164,11 @@ public class GamePanel extends JPanel implements ActionListener {
                         curPiece.getShape());
             }
         }
+         // 如果游戏暂停，显示暂停标志
+         if (isPaused) {
+             g.setColor(Color.RED);
+             g.drawString("Paused", getWidth() - 60, 20);
+         }
     }
 
     public void displayScore(Graphics g) {
@@ -174,7 +182,12 @@ public class GamePanel extends JPanel implements ActionListener {
         doDrawing(g);
         drawGhostPiece(g);
         displayScore(g);
-        // drawGhostPiece(g);
+            // drawGhostPiece(g);
+            // 如果游戏暂停，显示暂停标志
+            if (isPaused) {
+                g.setColor(Color.RED);
+                g.drawString("Paused", getWidth() - 60, 20);
+            }
     }
 
     private void dropDown() {
@@ -410,3 +423,4 @@ public class GamePanel extends JPanel implements ActionListener {
         });
     }
 }
+
