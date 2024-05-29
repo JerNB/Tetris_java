@@ -307,35 +307,17 @@ public class GamePanel extends JPanel implements ActionListener {
     // repaint();
     // }
 
-    // public void drawGhostPiece(Graphics g) {
-    // if (curPiece.getShape() != Shape.NoShape) {
-    // g.setColor(new Color(255, 255, 255, 128)); // 设置颜色为半透明的白色
-
-    // Piece ghostPiece = curPiece; // 创建curPiece的副本
-    // int y = curY;
-    // while (y > 0) {
-    // if (!tryMove(ghostPiece, curX, y - 1)) // 使用副本ghostPiece
-    // break;
-    // --y;
-    // }
-
-    // for (int i = 0; i < 4; ++i) {
-    // int x = curX + ghostPiece.x(i); // 使用副本ghostPiece
-    // int ghostY = y + ghostPiece.y(i); // 使用副本ghostPiece
-    // drawSquare(g, x * squareWidth(), (BOARD_HEIGHT - ghostY - 1) *
-    // squareHeight(), ghostPiece.getShape()); // 使用副本ghostPiece
-    // }
-    // }
-    // }
     private void drawGhostPiece(Graphics g) {
         Dimension size = getSize();
         int boardTop = (int) size.getHeight() - BOARD_HEIGHT * squareHeight();
-        int boardBottom = boardTop + BOARD_HEIGHT * squareHeight();
         g.setColor(new Color(255, 255, 255));
 
         if (curPiece.getShape() != Shape.NoShape) {
             int ghostY = curY;
-            while (ghostY > 1 && checkMove(curPiece, curX, ghostY)) {
+            while (ghostY > 0) {
+                if (!checkMove(curPiece, curX, ghostY - 1)) {
+                    break;
+                }
                 ghostY--;
             }
 
