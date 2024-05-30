@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+
 public class GamePanel extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
@@ -164,11 +165,11 @@ public class GamePanel extends JPanel implements ActionListener {
                         curPiece.getShape());
             }
         }
-         // 如果游戏暂停，显示暂停标志
-         if (isPaused) {
-             g.setColor(Color.RED);
-             g.drawString("Paused", getWidth() - 60, 20);
-         }
+        // 如果游戏暂停，显示暂停标志
+        if (isPaused) {
+            g.setColor(Color.RED);
+            g.drawString("Paused", getWidth() - 60, 20);
+        }
     }
 
     public void displayScore(Graphics g) {
@@ -182,29 +183,26 @@ public class GamePanel extends JPanel implements ActionListener {
         doDrawing(g);
         drawGhostPiece(g);
         displayScore(g);
-            // drawGhostPiece(g);
-            // 如果游戏暂停，显示暂停标志
-            if (isPaused) {
-                g.setColor(Color.RED);
-                g.drawString("Paused", getWidth() - 60, 20);
-            }
+        // drawGhostPiece(g);
+        // 如果游戏暂停，显示暂停标志
+        if (isPaused) {
+            g.setColor(Color.RED);
+            g.drawString("Paused", getWidth() - 60, 20);
+        }
     }
 
     private void dropDown() {
-    int newY = curY;
-    while (newY > 0) {
-        if (!tryMove(curPiece, curX, newY - 1)) {
-            break;
+        int newY = curY;
+        while (newY > 0) {
+            if (!tryMove(curPiece, curX, newY - 1)) {
+                break;
+            }
+            newY--;
         }
 
-        newY--;
+        board.updateScore(70);
+        pieceDropped();
     }
-
-    board.updateScore(70);
-    pieceDropped();
-}
-
-
 
     private void oneLineDown() {
         if (!tryMove(curPiece, curX, curY - 1)) {
@@ -322,7 +320,7 @@ public class GamePanel extends JPanel implements ActionListener {
         if (color.getAlpha() == 255) {
             int centerX = x + squareWidth() / 2;
             int centerY = y + squareHeight() / 2;
-            int innerSquareSize = Math.min(squareWidth(), squareHeight()) / 3;
+            int innerSquareSize = Math.min(squareWidth(), squareHeight()) * 3 / 5; // 内部方块尺寸为外部方块的60%
 
             g.setColor(color.darker().darker());
             g.drawLine(centerX - innerSquareSize / 2, centerY - innerSquareSize / 2, centerX + innerSquareSize / 2,
@@ -376,7 +374,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 int x = curX + curPiece.x(i);
                 int y = ghostY - curPiece.y(i);
                 drawSquare(g, 0 + x * squareWidth(), boardTop + (BOARD_HEIGHT - y - 1) * squareHeight(),
-                        curPiece.getShape(), new Color(255, 255, 255, 128));
+                        curPiece.getShape(), new Color(255, 255, 255, 50));
             }
         }
     }
@@ -423,4 +421,3 @@ public class GamePanel extends JPanel implements ActionListener {
         });
     }
 }
-
