@@ -1,5 +1,10 @@
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
+import java.awt.event.KeyEvent;
+import java.awt.event.ActionEvent;
 
 public class Tetris extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -13,10 +18,22 @@ public class Tetris extends JFrame {
         setVisible(true);
         GamePanel gamePanel = new GamePanel();
         add(gamePanel);
-        setTitle("Tetris");
+        setTitle("俄罗斯方块");
         setSize(400, 800);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        
+        // 添加重启快捷键
+        gamePanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0), "restart");
+        gamePanel.getActionMap().put("restart", new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gamePanel.restart();
+            }
+        });
     }
 
     public static void main(String[] args) {

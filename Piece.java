@@ -16,6 +16,13 @@ public class Piece {
     private int[][][] coordsTable;
     private List<Shape> shapeList = new ArrayList<>();
 
+    // 添加墙踢数据
+    private static final int[][][] WALL_KICK_DATA = {
+        // 0>>1    1>>2    2>>3    3>>0
+        {{0,0}, {-1,0}, {-1,1}, {0,-2}, {-1,-2}},  // 顺时针
+        {{0,0}, {1,0}, {1,1}, {0,-2}, {1,-2}},     // 逆时针
+    };
+
     public Piece() {
         coords = new int[4][2];
         setShape(Shape.NoShape);
@@ -134,5 +141,44 @@ public class Piece {
         }
 
         return result;
+    }
+
+    public boolean rotate(Board board, int pieceX, int pieceY, boolean clockwise) {
+        int[][] newCoords = new int[4][2];
+        
+        // 复制并旋转坐标
+        for (int i = 0; i < 4; i++) {
+            if (clockwise) {
+                newCoords[i][0] = -coords[i][1];
+                newCoords[i][1] = coords[i][0];
+            } else {
+                newCoords[i][0] = coords[i][1];
+                newCoords[i][1] = -coords[i][0];
+            }
+        }
+        
+        // 尝试墙踢
+        for (int[] kick : WALL_KICK_DATA[clockwise ? 0 : 1]) {
+            boolean canRotate = true;
+            for (int i = 0; i < 4; i++) {
+                int newX = pieceX + newCoords[i][0] + kick[0];
+                int newY = pieceY + newCoords[i][1] + kick[1];
+                
+                if (newX < 0 || newX >= Board.BOARD_WIDTH || 
+                    newY < 0 || newY >= Board.BOARD_HEIGHT ||
+                    board.shapeAt(newX, newY) != Shape.NoShape) {
+                    canRotate = false;
+                    break;
+                }
+            }
+            
+            if (canRotate) {
+                // 应用旋转和墙踢
+                coords = newCoords;
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

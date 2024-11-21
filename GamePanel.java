@@ -1,21 +1,15 @@
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.Timer;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ConvolveOp;
-import java.awt.image.Kernel;
 
 public class GamePanel extends JPanel implements ActionListener {
 
@@ -38,6 +32,9 @@ public class GamePanel extends JPanel implements ActionListener {
     private List<Piece> pieceList;
     private Piece preservedPiece;
     private Timer moveTimer;
+    private boolean isGameOver = false;
+    private static final Color OVERLAY_COLOR = new Color(0, 0, 0, 128); // 半透明黑色蒙层
+    private boolean canHold = true;
 
     public GamePanel() {
         pieceList = new ArrayList<>();
@@ -95,33 +92,17 @@ public class GamePanel extends JPanel implements ActionListener {
         }
     }
 
-    // private void start() {
-    // if (isPaused) {
-    // return;
-    // }
-
-    // isStarted = true;
-    // isFallingFinished = false;
-    // numLinesRemoved = 0;
-    // board.clear();
-
-    // newPiece();
-    // timer.start();
-    // }
-
     private void pause() {
-        if (!isStarted) {
+        if (!isStarted || isGameOver) {
             return;
         }
 
         isPaused = !isPaused;
-
         if (isPaused) {
             timer.stop();
         } else {
             timer.start();
         }
-
         repaint();
     }
 
@@ -165,10 +146,12 @@ public class GamePanel extends JPanel implements ActionListener {
                         curPiece.getShape());
             }
         }
-        // 如果游戏暂停，显示暂停标志
-        if (isPaused) {
-            g.setColor(Color.RED);
-            g.drawString("Paused", getWidth() - 60, 20);
+        // 绘制操作提示
+        drawInstructions(g);
+        
+        // 绘制暂停/游戏结束蒙层
+        if (isPaused || isGameOver) {
+            drawOverlay(g);
         }
     }
 
@@ -183,11 +166,9 @@ public class GamePanel extends JPanel implements ActionListener {
         doDrawing(g);
         drawGhostPiece(g);
         displayScore(g);
-        // drawGhostPiece(g);
-        // 如果游戏暂停，显示暂停标志
-        if (isPaused) {
-            g.setColor(Color.RED);
-            g.drawString("Paused", getWidth() - 60, 20);
+        
+        if (isGameOver) {
+            drawGameOver(g);
         }
     }
 
@@ -216,6 +197,11 @@ public class GamePanel extends JPanel implements ActionListener {
         if (!isFallingFinished) {
             newPiece();
         }
+        
+        canHold = true;  // 重置hold功能
+        
+        // 添加放置动画
+        addPlaceAnimation(curX, curY);
     }
 
     public void newPiece() {
@@ -419,5 +405,147 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
             }
         });
+    }
+
+    public void restart() {
+        isStarted = true;
+        isGameOver = false;
+        isPaused = false;
+        numLinesRemoved = 0;
+        board.clear();
+        board.resetScore();
+        curPiece = new Piece();
+        holdPiece = new Piece();
+        holdPiece.setShape(Shape.NoShape);
+        holdUsed = false;
+        newPiece();
+        timer.start();
+        repaint();
+    }
+
+    private void drawGameOver(Graphics g) {
+        String msg = "Game Over - Press R to Restart";
+        Font font = new Font("Arial", Font.BOLD, 18);
+        FontMetrics metrics = getFontMetrics(font);
+        
+        g.setFont(font);
+        g.setColor(Color.RED);
+        g.drawString(msg, (getWidth() - metrics.stringWidth(msg)) / 2, getHeight() / 2);
+    }
+
+    private void drawInstructions(Graphics g) {
+        Font font = new Font("Arial", Font.PLAIN, 14);
+        g.setFont(font);
+        g.setColor(Color.WHITE);
+        
+        String[] instructions = {
+            "← → : Move Left/Right",
+            "↑ : Rotate Clockwise",
+            "↓ : Soft Drop",
+            "SPACE : Hard Drop",
+            "Z : Rotate Counter-clockwise",
+            "C : Hold Piece",
+            "P : Pause Game",
+            "R : Restart Game"
+        };
+        
+        int startY = 50;
+        for (String instruction : instructions) {
+            g.drawString(instruction, 10, startY);
+            startY += 20;
+        }
+    }
+
+    private void drawOverlay(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+        Composite originalComposite = g2d.getComposite();
+        
+        // 设置半透明效果
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+        g2d.setColor(Color.BLACK);
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+        
+        // 恢复原始透明度
+        g2d.setComposite(originalComposite);
+        
+        String msg = isPaused ? "PAUSED - Press P to Continue" : "GAME OVER - Press R to Restart";
+        Font font = new Font("Arial", Font.BOLD, 20);
+        g2d.setFont(font);
+        g2d.setColor(Color.WHITE);
+        
+        FontMetrics metrics = g2d.getFontMetrics(font);
+        int x = (getWidth() - metrics.stringWidth(msg)) / 2;
+        int y = getHeight() / 2;
+        
+        g2d.drawString(msg, x, y);
+    }
+
+    private void checkTSpinAndScore(int lines) {
+        boolean isTSpin = board.checkTSpin(curPiece, curX, curY);
+        board.updateScoreWithTSpin(lines, isTSpin);
+    }
+
+    // 添加方块放置动画效果
+    private void addPlaceAnimation(int x, int y) {
+        final Color FLASH_COLOR = Color.WHITE;
+        final int FLASH_DURATION = 150; // 毫秒
+        
+        Timer flashTimer = new Timer(FLASH_DURATION / 3, new ActionListener() {
+            private int count = 0;
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                count++;
+                if (count >= 3) {
+                    ((Timer)e.getSource()).stop();
+                }
+                repaint();
+            }
+        });
+        flashTimer.start();
+    }
+
+    private void holdPiece() {
+        if (!canHold) {
+            return;
+        }
+        
+        if (holdPiece.getShape() == Shape.NoShape) {
+            holdPiece = curPiece;
+            newPiece();
+        } else {
+            Piece temp = curPiece;
+            curPiece = holdPiece;
+            holdPiece = temp;
+            
+            // 重置当前方块位置
+            curX = BOARD_WIDTH / 2;
+            curY = 0;
+        }
+        
+        canHold = false;  // 每次放置新方块后才能再次使用hold
+        repaint();
+    }
+
+    // 绘制hold区域
+    private void drawHoldPiece(Graphics g) {
+        if (holdPiece.getShape() == Shape.NoShape) {
+            return;
+        }
+        
+        int holdX = 10;
+        int holdY = 30;
+        
+        g.setColor(Color.GRAY);
+        g.drawRect(holdX, holdY, 80, 80);
+        g.drawString("HOLD", holdX, holdY - 5);
+        
+        if (!canHold) {
+            g.setColor(new Color(128, 128, 128, 128));
+            g.fillRect(holdX, holdY, 80, 80);
+        }
+        
+        // 绘制hold的方块
+        drawPiece(g, holdPiece, holdX + 20, holdY + 20);
     }
 }
